@@ -2,14 +2,11 @@
   "name": "qingning-local-life",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "frontend",
-    "admin",
-    "server"
-  ],
   "scripts": {
-    "dev:frontend": "pnpm --dir frontend run dev:h5",
+    "install:all": "pnpm --dir server install && pnpm --dir admin install && pnpm --dir frontend install",
+    "db:init": "pnpm --dir server exec prisma migrate dev --name init && pnpm --dir server run seed",
+    "dev:server": "pnpm --dir server run dev",
     "dev:admin": "pnpm --dir admin run dev",
-    "dev:server": "pnpm --dir server run dev"
+    "dev:frontend": "pnpm --dir frontend run dev:h5"
   }
 }
