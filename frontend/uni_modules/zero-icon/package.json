@@ -1,0 +1,11 @@
+{
+  "id": "zero-icon",
+  "displayName": "zero-icon",
+  "version": "1.0.0",
+  "description": "Iconify icons for uni-app",
+  "keywords": [
+    "icon",
+    "iconify",
+    "uni-app"
+  ]
+}

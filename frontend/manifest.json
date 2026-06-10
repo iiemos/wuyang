@@ -1,0 +1,36 @@
+{
+    "name" : "舞阳云",
+    "appid" : "__UNI__D2B8FA6",
+    "description" : "本地生活信息服务用户端",
+    "versionName" : "0.1.0",
+    "versionCode" : "1",
+    "transformPx" : false,
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        "modules" : {},
+        "distribute" : {
+            "android" : {
+                "permissions" : []
+            },
+            "ios" : {}
+        }
+    },
+    "mp-weixin" : {
+        "appid" : "wxae100f238ab9055c",
+        "setting" : {
+            "urlCheck" : false
+        },
+        "usingComponents" : true
+    },
+    "h5" : {
+        "title" : "舞阳本地生活"
+    }
+}

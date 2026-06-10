@@ -1,0 +1,12 @@
+.DS_Store
+.git
+.pnpm-store
+admin
+frontend
+node_modules
+
+server/.env
+server/.git
+server/dist
+server/node_modules
+server/*.log

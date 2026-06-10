@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>舞阳云 - 城市身边信息服务平台</title>
+    <meta
+      name="description"
+      content="舞阳云聚合招聘、房源、便民、服务、二手和资讯，帮助用户快速发现身边真实信息。"
+    />
+    <style>
+      :root {
+        --green: #18d65f;
+        --green-dark: #093d22;
+        --green-soft: #e9ffe9;
+        --yellow: #ffe25a;
+        --orange: #ff7a45;
+        --ink: #151915;
+        --muted: #68706a;
+        --line: #e9eee9;
+        --page: #f6f8f5;
+        --white: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font-family:
+          Inter, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial,
+          sans-serif;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        height: 72px;
+        background: rgba(255, 255, 255, 0.92);
+        border-bottom: 1px solid rgba(232, 238, 233, 0.88);
+        backdrop-filter: blur(16px);
+      }
+
+      .header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: min(1180px, calc(100% - 48px));
+        height: 100%;
+        margin: 0 auto;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 22px;
+        font-weight: 800;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--yellow), var(--green));
+        color: var(--green-dark);
+        font-weight: 900;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 34px;
+        color: #2d332f;
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .nav a:hover {
+        color: var(--green);
+      }
+
+      .header-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 116px;
+        height: 40px;
+        padding: 0 18px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--white);
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .hero {
+        overflow: hidden;
+        background:
+          linear-gradient(90deg, rgba(9, 61, 34, 0.12), rgba(24, 214, 95, 0)),
+          var(--green);
+      }
+
+      .hero-inner {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 500px;
+        align-items: center;
+        gap: 44px;
+        width: min(1180px, calc(100% - 48px));
+        margin: 0 auto;
+        padding: 58px 0 50px;
+      }
+
+      .hero-copy {
+        color: var(--white);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        height: 32px;
+        padding: 0 14px;
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 680px;
+        margin-top: 22px;
+        font-size: 66px;
+        line-height: 1.05;
+        font-weight: 900;
+      }
+
+      .hero-lead {
+        max-width: 600px;
+        margin-top: 22px;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 20px;
+        line-height: 1.8;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 32px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 132px;
+        height: 48px;
+        padding: 0 22px;
+        border-radius: 999px;
+        font-weight: 900;
+      }
+
+      .button-primary {
+        background: var(--white);
+        color: var(--green-dark);
+      }
+
+      .button-secondary {
+        border: 1px solid rgba(255, 255, 255, 0.46);
+        color: var(--white);
+      }
+
+      .hero-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        max-width: 620px;
+        margin-top: 36px;
+      }
+
+      .metric {
+        min-height: 94px;
+        padding: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.14);
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .metric strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--white);
+        font-size: 26px;
+        line-height: 1;
+      }
+
+      .hero-visual {
+        position: relative;
+        min-height: 620px;
+      }
+
+      .phone-shell {
+        position: absolute;
+        right: 52px;
+        top: 18px;
+        z-index: 1;
+        width: 300px;
+        height: 604px;
+        padding: 12px;
+        border: 10px solid #1e2721;
+        border-radius: 46px;
+        background: #111713;
+        box-shadow: 0 34px 86px rgba(6, 54, 30, 0.28);
+      }
+
+      .phone-shell::before {
+        position: absolute;
+        top: 11px;
+        left: 50%;
+        width: 76px;
+        height: 18px;
+        border-radius: 999px;
+        background: #111713;
+        content: "";
+        transform: translateX(-50%);
+      }
+
+      .phone-screen {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 34px;
+        background: #dff9df;
+      }
+
+      .phone-screen img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+      }
+
+      .service-chip {
+        position: absolute;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 150px;
+        padding: 14px 16px;
+        border-radius: 8px;
+        background: var(--white);
+        box-shadow: 0 18px 42px rgba(6, 54, 30, 0.18);
+        color: #263329;
+        font-weight: 900;
+      }
+
+      .service-chip span {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--green-soft);
+        color: var(--green-dark);
+        font-size: 13px;
+      }
+
+      .service-chip.jobs {
+        top: 94px;
+        left: 18px;
+      }
+
+      .service-chip.houses {
+        top: 268px;
+        left: 0;
+      }
+
+      .service-chip.audit {
+        right: 0;
+        bottom: 112px;
+      }
+
+      .access-band {
+        background: var(--white);
+      }
+
+      .access-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        width: min(1180px, calc(100% - 48px));
+        margin: 0 auto;
+        padding: 34px 0;
+      }
+
+      .access-card,
+      .feature-card,
+      .category-card,
+      .flow-card,
+      .contact-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--white);
+      }
+
+      .access-card {
+        min-height: 150px;
+        padding: 22px;
+      }
+
+      .card-icon {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        border-radius: 8px;
+        background: #111713;
+        color: var(--white);
+        font-weight: 900;
+      }
+
+      .access-card h3,
+      .feature-card h3,
+      .category-card h3,
+      .flow-card h3 {
+        margin-top: 18px;
+        font-size: 20px;
+        line-height: 1.25;
+      }
+
+      .access-card p,
+      .feature-card p,
+      .category-card p,
+      .flow-card p,
+      .contact-card p {
+        margin-top: 10px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .section {
+        width: min(1180px, calc(100% - 48px));
+        margin: 0 auto;
+        padding: 86px 0;
+      }
+
+      .section-heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 32px;
+      }
+
+      .section-kicker {
+        color: var(--green-dark);
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .section h2 {
+        max-width: 720px;
+        margin-top: 12px;
+        font-size: 42px;
+        line-height: 1.18;
+      }
+
+      .section-heading p {
+        max-width: 360px;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .feature-card {
+        padding: 28px;
+      }
+
+      .feature-card:first-child {
+        border-color: rgba(24, 214, 95, 0.35);
+        background: linear-gradient(180deg, #f0fff0, #ffffff);
+      }
+
+      .about {
+        background: var(--white);
+      }
+
+      .about-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+        gap: 42px;
+        align-items: center;
+      }
+
+      .about-copy h2 {
+        font-size: 42px;
+        line-height: 1.18;
+      }
+
+      .about-copy p {
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.9;
+      }
+
+      .about-list {
+        display: grid;
+        gap: 14px;
+        margin-top: 28px;
+      }
+
+      .about-list div {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .check {
+        display: grid;
+        flex: 0 0 24px;
+        width: 24px;
+        height: 24px;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--green);
+        color: var(--white);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .about-showcase {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      .showcase-panel {
+        min-height: 230px;
+        padding: 24px;
+        border-radius: 8px;
+        background: #f2f7f1;
+      }
+
+      .showcase-panel.green {
+        background: var(--green-dark);
+        color: var(--white);
+      }
+
+      .showcase-panel strong {
+        display: block;
+        font-size: 34px;
+        line-height: 1;
+      }
+
+      .showcase-panel span {
+        display: block;
+        margin-top: 10px;
+        color: currentColor;
+        opacity: 0.74;
+        line-height: 1.7;
+      }
+
+      .category-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .category-card {
+        min-height: 176px;
+        padding: 20px;
+      }
+
+      .category-card h3 {
+        margin-top: 24px;
+      }
+
+      .category-mark {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--green-soft);
+        color: var(--green-dark);
+        font-weight: 900;
+      }
+
+      .flow {
+        background: #111713;
+        color: var(--white);
+      }
+
+      .flow .section {
+        padding: 82px 0;
+      }
+
+      .flow .section-kicker,
+      .flow .section-heading p {
+        color: rgba(255, 255, 255, 0.68);
+      }
+
+      .flow-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .flow-card {
+        min-height: 220px;
+        padding: 24px;
+        border-color: rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .flow-card p {
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .flow-index {
+        color: var(--yellow);
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .contact {
+        background: var(--white);
+      }
+
+      .contact-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 28px;
+        align-items: center;
+        padding: 38px;
+      }
+
+      .contact-card h2 {
+        font-size: 38px;
+        line-height: 1.2;
+      }
+
+      .contact-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .contact-actions .button-primary {
+        background: var(--green);
+        color: var(--white);
+      }
+
+      .contact-actions .button-secondary {
+        border-color: #cfd9d0;
+        color: var(--ink);
+      }
+
+      .site-footer {
+        padding: 26px 0 34px;
+        background: var(--white);
+        color: #7b837d;
+        font-size: 14px;
+      }
+
+      .footer-inner {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        width: min(1180px, calc(100% - 48px));
+        margin: 0 auto;
+        border-top: 1px solid var(--line);
+        padding-top: 24px;
+      }
+
+      @media (max-width: 1040px) {
+        .hero-inner,
+        .about-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-visual {
+          min-height: 560px;
+        }
+
+        .phone-shell {
+          left: 50%;
+          right: auto;
+          transform: translateX(-50%);
+        }
+
+        .access-grid,
+        .flow-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .category-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 760px) {
+        .hero {
+          position: relative;
+        }
+
+        .site-header {
+          height: auto;
+        }
+
+        .header-inner {
+          flex-wrap: wrap;
+          gap: 14px;
+          width: min(100% - 28px, 1180px);
+          padding: 14px 0;
+        }
+
+        .brand {
+          font-size: 19px;
+        }
+
+        .nav {
+          order: 3;
+          width: 100%;
+          justify-content: space-between;
+          gap: 10px;
+          font-size: 14px;
+        }
+
+        .header-action {
+          min-width: auto;
+          height: 36px;
+          padding: 0 14px;
+        }
+
+        .hero-inner,
+        .section,
+        .access-grid,
+        .footer-inner {
+          width: min(100% - 28px, 1180px);
+        }
+
+        .hero-inner {
+          position: relative;
+          display: block;
+          gap: 26px;
+          padding: 42px 0 84px;
+        }
+
+        .hero-copy {
+          position: relative;
+          z-index: 2;
+        }
+
+        h1 {
+          font-size: 42px;
+        }
+
+        .hero-lead {
+          font-size: 17px;
+        }
+
+        .access-grid,
+        .feature-grid,
+        .category-grid,
+        .flow-grid,
+        .about-showcase,
+        .contact-card {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-metrics {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
+          margin-top: 24px;
+          padding-right: 92px;
+        }
+
+        .metric {
+          min-height: 78px;
+          padding: 12px 10px;
+          font-size: 12px;
+          line-height: 1.35;
+        }
+
+        .metric strong {
+          font-size: 20px;
+        }
+
+        .hero-visual {
+          position: absolute;
+          z-index: 1;
+          right: -82px;
+          bottom: -84px;
+          width: 128px;
+          min-height: 250px;
+          pointer-events: none;
+        }
+
+        .phone-shell {
+          top: 0;
+          right: 0;
+          left: auto;
+          width: 128px;
+          height: 258px;
+          padding: 5px;
+          border-width: 5px;
+          border-radius: 24px;
+          transform: none;
+        }
+
+        .phone-shell::before {
+          top: 6px;
+          width: 38px;
+          height: 9px;
+        }
+
+        .phone-screen {
+          border-radius: 18px;
+        }
+
+        .service-chip {
+          display: none;
+        }
+
+        .section {
+          padding: 58px 0;
+        }
+
+        .section-heading {
+          display: block;
+        }
+
+        .section h2,
+        .about-copy h2,
+        .contact-card h2 {
+          font-size: 32px;
+        }
+
+        .section-heading p {
+          margin-top: 14px;
+        }
+
+        .contact-card {
+          padding: 26px;
+        }
+
+        .footer-inner {
+          display: block;
+        }
+
+        .footer-inner span:last-child {
+          display: block;
+          margin-top: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="#home" aria-label="舞阳云首页">
+          <span class="brand-mark">舞</span>
+          <span>舞阳云</span>
+        </a>
+        <nav class="nav" aria-label="主导航">
+          <a href="#features">核心能力</a>
+          <a href="#about">项目介绍</a>
+          <a href="#services">服务分类</a>
+          <a href="#contact">联系我们</a>
+        </nav>
+        <a class="header-action" href="../frontend/index.html">进入用户端</a>
+      </div>
+    </header>
+
+    <main id="home">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">城市身边信息服务平台</span>
+            <h1 id="hero-title">舞阳云</h1>
+            <p class="hero-lead">
+              聚合招聘、房源、便民、商家服务、二手闲置和本地资讯，让居民快速找到真实可靠的身边信息，让商家更高效触达附近用户。
+            </p>
+            <div class="hero-actions" aria-label="快捷入口">
+              <a class="button button-primary" href="#services">查看服务</a>
+              <a class="button button-secondary" href="#contact">合作咨询</a>
+            </div>
+            <div class="hero-metrics" aria-label="平台亮点">
+              <div class="metric">
+                <strong>6类</strong>
+                高频本地信息集中展示
+              </div>
+              <div class="metric">
+                <strong>15分</strong>
+                快速完成发布与浏览
+              </div>
+              <div class="metric">
+                <strong>全链路</strong>
+                审核、推荐、运营一体化
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-visual" aria-label="产品界面展示">
+            <div class="service-chip jobs"><span>聘</span>招聘求职</div>
+            <div class="service-chip houses"><span>房</span>租售找房</div>
+            <div class="service-chip audit"><span>审</span>后台审核</div>
+            <div class="phone-shell">
+              <div class="phone-screen">
+                <img src="assets/app-showcase.png" alt="舞阳云移动端界面展示" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="access-band" aria-label="平台入口">
+        <div class="access-grid">
+          <article class="access-card">
+            <div class="card-icon">发</div>
+            <h3>信息发布</h3>
+            <p>标题、价格、位置、联系方式和图片一次提交，进入统一审核流程。</p>
+          </article>
+          <article class="access-card">
+            <div class="card-icon">审</div>
+            <h3>内容审核</h3>
+            <p>待审、举报、认证集中处理，降低虚假信息和重复信息干扰。</p>
+          </article>
+          <article class="access-card">
+            <div class="card-icon">荐</div>
+            <h3>精选推荐</h3>
+            <p>置顶、广告位和精选内容组合运营，让优质信息获得更好曝光。</p>
+          </article>
+          <article class="access-card">
+            <div class="card-icon">管</div>
+            <h3>平台管理</h3>
+            <p>分类、公告、角色权限和系统配置统一维护，适配本地运营节奏。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="features" class="section" aria-labelledby="features-title">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">核心能力</span>
+            <h2 id="features-title">从发布到触达，围绕本地信息做完整闭环</h2>
+          </div>
+          <p>参考即时零售门户的清晰表达方式，把“可信、快速、丰富”作为项目第一印象。</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div class="category-mark">1</div>
+            <h3>一站式分类聚合</h3>
+            <p>招聘、房源、便民、商家、二手和资讯统一入口，用户不需要在多个渠道来回切换。</p>
+          </article>
+          <article class="feature-card">
+            <div class="category-mark">2</div>
+            <h3>审核优先的信任体系</h3>
+            <p>发布后进入后台审核，配合举报、认证和敏感内容治理，提升平台信息质量。</p>
+          </article>
+          <article class="feature-card">
+            <div class="category-mark">3</div>
+            <h3>面向运营的增长工具</h3>
+            <p>广告位、置顶订单、精选推荐和收入趋势沉淀在后台，方便持续运营。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="about" class="about">
+        <div class="section about-layout">
+          <div class="about-copy">
+            <span class="section-kicker">项目介绍</span>
+            <h2>把城市里的高频需求，做成更轻、更近、更可信的入口</h2>
+            <p>
+              舞阳云服务居民查找附近信息，也服务商家和个人发布真实需求。前端面向移动浏览与发布，后台支撑审核、运营、用户和系统管理。
+            </p>
+            <div class="about-list">
+              <div>
+                <span class="check">✓</span>
+                <p>用户端覆盖搜索、分类、详情、发布、推荐和个人中心。</p>
+              </div>
+              <div>
+                <span class="check">✓</span>
+                <p>管理端覆盖内容审核、用户认证、举报反馈、广告与系统配置。</p>
+              </div>
+              <div>
+                <span class="check">✓</span>
+                <p>服务端沉淀内容、图片、推荐、权限、日志和运营数据。</p>
+              </div>
+            </div>
+          </div>
+          <div class="about-showcase" aria-label="项目数据摘要">
+            <div class="showcase-panel green">
+              <strong>本地化</strong>
+              <span>围绕社区、商圈、学校和城区生活半径组织内容。</span>
+            </div>
+            <div class="showcase-panel">
+              <strong>轻发布</strong>
+              <span>少字段、强预览、可上传图片，减少发布阻力。</span>
+            </div>
+            <div class="showcase-panel">
+              <strong>可治理</strong>
+              <span>审核、拒绝原因、举报和黑名单支撑平台秩序。</span>
+            </div>
+            <div class="showcase-panel green">
+              <strong>可运营</strong>
+              <span>广告位、置顶、分类和公告满足长期运营。</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="services" class="section" aria-labelledby="services-title">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">服务分类</span>
+            <h2 id="services-title">覆盖本地生活的主要信息场景</h2>
+          </div>
+          <p>分类保持清晰克制，用户进入页面后能快速判断去哪找、去哪发。</p>
+        </div>
+        <div class="category-grid">
+          <article class="category-card">
+            <div class="category-mark">聘</div>
+            <h3>招聘求职</h3>
+            <p>全职、兼职、临时工和校招岗位。</p>
+          </article>
+          <article class="category-card">
+            <div class="category-mark">房</div>
+            <h3>租房售房</h3>
+            <p>整租、合租、二手房和商铺转让。</p>
+          </article>
+          <article class="category-card">
+            <div class="category-mark">便</div>
+            <h3>便民互助</h3>
+            <p>拼车、求助、失物招领和打听事。</p>
+          </article>
+          <article class="category-card">
+            <div class="category-mark">商</div>
+            <h3>商家服务</h3>
+            <p>家政、维修、装修和本地服务商。</p>
+          </article>
+          <article class="category-card">
+            <div class="category-mark">闲</div>
+            <h3>二手闲置</h3>
+            <p>同城自提、转让、回收和置换。</p>
+          </article>
+          <article class="category-card">
+            <div class="category-mark">讯</div>
+            <h3>本地资讯</h3>
+            <p>民生公告、活动资讯和城市动态。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="flow" aria-labelledby="flow-title">
+        <div class="section">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">运营闭环</span>
+              <h2 id="flow-title">后台支撑真实信息持续流转</h2>
+            </div>
+            <p>门户页对外讲清楚价值，后台系统对内保障效率和质量。</p>
+          </div>
+          <div class="flow-grid">
+            <article class="flow-card">
+              <span class="flow-index">01</span>
+              <h3>用户提交</h3>
+              <p>用户填写标题、价格、位置、联系人和描述，形成标准化内容。</p>
+            </article>
+            <article class="flow-card">
+              <span class="flow-index">02</span>
+              <h3>平台审核</h3>
+              <p>运营人员处理待审队列、认证申请和举报反馈，控制风险。</p>
+            </article>
+            <article class="flow-card">
+              <span class="flow-index">03</span>
+              <h3>推荐曝光</h3>
+              <p>通过精选推荐、置顶和广告位，把优质内容推到关键位置。</p>
+            </article>
+            <article class="flow-card">
+              <span class="flow-index">04</span>
+              <h3>数据复盘</h3>
+              <p>查看发布量、通过率、收入趋势和操作日志，持续优化运营。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="contact">
+        <div class="section">
+          <div class="contact-card">
+            <div>
+              <span class="section-kicker">联系我们</span>
+              <h2>让本地信息更快被看见，也更值得信任</h2>
+              <p>适合区县生活服务、校园互助、商圈信息、社区服务等场景落地。</p>
+            </div>
+            <div class="contact-actions">
+              <a class="button button-primary" href="../frontend/index.html">体验用户端</a>
+              <a class="button button-secondary" href="../admin/index.html">进入管理端</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <span>© 舞阳云</span>
+        <span>招聘 · 房源 · 便民 · 服务 · 二手 · 资讯</span>
+      </div>
+    </footer>
+  </body>
+</html>

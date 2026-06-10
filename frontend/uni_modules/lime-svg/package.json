@@ -1,0 +1,110 @@
+{
+  "id": "lime-svg",
+  "displayName": "lime-svg",
+  "version": "0.3.4",
+  "description": "lime-svg 是一款UTS原生图标插件,支持修改单色svg的颜色，支持本地、base64、网络等路径。支持uniapp/uniappx",
+  "keywords": [
+    "lime-svg",
+    "svg",
+    "uvue",
+    "vue"
+],
+  "repository": "",
+  "engines": {
+    "HBuilderX": "^4.17",
+    "uni-app": "^4.45",
+    "uni-app-x": "^4.61"
+  },
+  "dcloudext": {
+    "type": "uts-vue-component",
+    "sale": {
+      "regular": {
+        "price": "7.99"
+      },
+      "sourcecode": {
+        "price": "8.00"
+      }
+    },
+    "contact": {
+      "qq": ""
+    },
+    "declaration": {
+      "ads": "无",
+      "data": "无",
+      "permissions": "无"
+    },
+    "npmurl": "",
+    "darkmode": "x",
+    "i18n": "x",
+    "widescreen": "x"
+  },
+  "uni_modules": {
+    "dependencies": [],
+    "encrypt": [],
+    "platforms": {
+      "cloud": {
+        "tcb": "x",
+        "aliyun": "x",
+        "alipay": "x"
+      },
+      "client": {
+        "uni-app": {
+          "vue": {
+            "vue2": "√",
+            "vue3": "√"
+          },
+          "web": {
+            "safari": "√",
+            "chrome": "√"
+          },
+          "app": {
+            "vue": "√",
+            "nvue": "-",
+            "android": {
+                "extVersion": "",
+                "minVersion": "21"
+            },
+            "ios": "√",
+            "harmony": "√"
+          },
+          "mp": {
+            "weixin": "√",
+            "alipay": "√",
+            "toutiao": "-",
+            "baidu": "-",
+            "kuaishou": "-",
+            "jd": "-",
+            "harmony": "-",
+            "qq": "-",
+            "lark": "-",
+            "xhs": "-"
+          },
+          "quickapp": {
+            "huawei": "-",
+            "union": "-"
+          }
+        },
+        "uni-app-x": {
+          "web": {
+            "safari": "√",
+            "chrome": "√"
+          },
+          "app": {
+            "android": {
+                "extVersion": "",
+                "minVersion": "21"
+            },
+            "ios": "√",
+            "harmony": "√"
+          },
+          "mp": {
+            "weixin": "√"
+          }
+        }
+      }
+    },
+    "extends": {
+        "sn": "zXl2FwGYVjXz4novIiyhgvXNyNmP4+Kpk6y9g5UxV1kV9BD/l6QND+WtrCst/Vlm5ZaWcdUnvfkITNSEHJ07nos9WXbYfic0JtHSOu9ipux8nIq0WX7zBGdYD8Qkc60hnoK7qt/iGR+Uc3tsghYDPkk+QAdW8SEZJeF1LzmUYERzAGi5UJoNci2SybVUq8TA0Bv3HK9OWuOqv4QXDDAop7v9+eSlF37Hy+RTZrd1VtlskEkOZOw8DWNHpuSIRHVVPl97JmMw2Ie0MZGhhePgwQ=="
+    }
+  }
+}
