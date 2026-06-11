@@ -98,6 +98,16 @@
           <text>人</text>
         </view>
 
+        <view class="job-mini-row">
+          <text class="job-mini-muted">联系人</text>
+          <input v-model="form.contact" class="job-contact-input" placeholder="联系人称呼" />
+        </view>
+
+        <view class="job-mini-row">
+          <text class="job-mini-muted">联系电话</text>
+          <input v-model="form.phone" class="job-contact-input" type="number" placeholder="求职者将拨打该号码" />
+        </view>
+
         <view class="job-require-head">
           <text>继续完善要求</text>
           <text class="job-progress">+30%求职者精准度</text>
@@ -250,7 +260,7 @@ function createEmptyForm() {
     price: '',
     address: '舞阳县 本地岗位',
     contact: '招聘方',
-    phone: '000000',
+    phone: '',
     summary: defaultJobSummary()
   }
 }
@@ -493,7 +503,8 @@ export default {
       return {
         ...this.form,
         price: this.jobPriceText,
-        tag: this.jobSettlement,
+        // tag 需与招聘分类 tab（全职/兼职/临时工）对齐，结算方式已记录在 details.settlement
+        tag: this.jobRequirementValues.partTimeType === '临时工' ? '临时工' : '兼职',
         summary,
         highlights: highlights.map(item => item.slice(0, 20)).slice(0, 6),
         details: {
@@ -516,6 +527,14 @@ export default {
         uni.showToast({ title: '请填写职位标题', icon: 'none' })
         return
       }
+      if (!this.form.contact) {
+        uni.showToast({ title: '请填写联系人', icon: 'none' })
+        return
+      }
+      if (!this.form.phone || String(this.form.phone).length < 6) {
+        uni.showToast({ title: '请填写有效的联系电话', icon: 'none' })
+        return
+      }
       this.submitting = true
       try {
         const data = await createListing(this.buildPayload())
@@ -527,8 +546,8 @@ export default {
         setTimeout(() => {
           uni.redirectTo({ url: targetUrl })
         }, 400)
-      } catch {
-        uni.showToast({ title: '提交失败，请稍后重试', icon: 'none' })
+      } catch (error) {
+        uni.showToast({ title: (error && error.message) || '提交失败，请稍后重试', icon: 'none' })
       } finally {
         this.submitting = false
       }
@@ -807,6 +826,17 @@ export default {
   color: #10233f;
   font-size: 28rpx;
   text-align: center;
+}
+
+.job-contact-input {
+  flex: 2;
+  min-width: 0;
+  height: 60rpx;
+  padding: 0 18rpx;
+  border-radius: 15rpx;
+  background: #f7fafc;
+  color: #10233f;
+  font-size: 26rpx;
 }
 
 .job-require-head {

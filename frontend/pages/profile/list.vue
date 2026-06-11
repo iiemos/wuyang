@@ -110,8 +110,8 @@ export default {
         this.reason = ''
         uni.showToast({ title: '已提交反馈', icon: 'none' })
         await this.loadData()
-      } catch {
-        uni.showToast({ title: '提交失败，请稍后重试', icon: 'none' })
+      } catch (error) {
+        uni.showToast({ title: (error && error.message) || '提交失败，请稍后重试', icon: 'none' })
       } finally {
         this.submitting = false
       }

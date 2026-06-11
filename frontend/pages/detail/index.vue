@@ -761,10 +761,15 @@ export default {
     if (!query || !query.id) return
 
     try {
+      // 优先走正式详情（计入浏览量、可收藏/报名）；仅在内容未上架时回退预览通道
       const previewToken = this.getStoredPreviewToken(query.id, query.previewToken)
-      const data = previewToken
-        ? await getListingPreview(query.id, previewToken)
-        : await getListingDetail(query.id)
+      let data
+      try {
+        data = await getListingDetail(query.id)
+      } catch (error) {
+        if (!previewToken) throw error
+        data = await getListingPreview(query.id, previewToken)
+      }
       this.item = data
       this.type = data.type || this.type
       if (this.isJobDetail) await this.loadRelatedJobs()
@@ -781,8 +786,8 @@ export default {
           this.item.isFavorite = data.favorited
           uni.showToast({ title: data.favorited ? '已收藏' : '已取消收藏', icon: 'none' })
         })
-        .catch(() => {
-          uni.showToast({ title: '操作失败，请稍后重试', icon: 'none' })
+        .catch((error) => {
+          uni.showToast({ title: (error && error.message) || '操作失败，请稍后重试', icon: 'none' })
         })
     },
     contact() {
@@ -792,8 +797,8 @@ export default {
           .then(() => {
             uni.showToast({ title: '已记录求职意向', icon: 'none' })
           })
-          .catch(() => {
-            uni.showToast({ title: '投递失败，请稍后重试', icon: 'none' })
+          .catch((error) => {
+            uni.showToast({ title: (error && error.message) || '投递失败，请稍后重试', icon: 'none' })
           })
         return
       }

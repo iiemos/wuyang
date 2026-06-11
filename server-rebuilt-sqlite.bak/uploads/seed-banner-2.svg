@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="320" viewBox="0 0 750 320">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#ff7a45"/><stop offset="1" stop-color="#d4380d"/>
+  </linearGradient></defs>
+  <rect width="750" height="320" rx="24" fill="url(#g)"/>
+  <circle cx="640" cy="60" r="120" fill="#ffffff" opacity="0.12"/>
+  <circle cx="80" cy="280" r="90" fill="#ffffff" opacity="0.10"/>
+  <text x="60" y="150" font-size="52" font-family="PingFang SC, Microsoft YaHei, sans-serif" fill="#ffffff" font-weight="bold">安心找房 一站直达</text>
+  <text x="60" y="215" font-size="28" font-family="PingFang SC, Microsoft YaHei, sans-serif" fill="#ffffff" opacity="0.85">青柠本地生活 · 同城信息服务</text>
+</svg>

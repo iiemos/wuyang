@@ -29,6 +29,13 @@ service.interceptors.request.use((config) => {
 service.interceptors.response.use(
   (response) => response,
   (error) => {
+    // 登录态失效统一清理并回到登录页，避免停留页面反复报错
+    if (error.response?.status === 401) {
+      clearToken()
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`
+      }
+    }
     const message = error.response?.data?.error || error.response?.data?.message || error.message || '请求失败'
     return Promise.reject(new Error(message))
   }

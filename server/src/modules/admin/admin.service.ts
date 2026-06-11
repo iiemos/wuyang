@@ -14,7 +14,8 @@ const statusSchema = z.object({
 const topSchema = z.object({
   isTop: z.boolean(),
   topPriority: z.coerce.number().int().min(0).default(0),
-  topExpireAt: z.string().optional()
+  // 取消置顶时前端会传 topExpireAt: null，必须允许 null
+  topExpireAt: z.string().optional().nullable()
 })
 const recommendSchema = z.object({ isRecommended: z.boolean() })
 const articleSchema = z.object({
@@ -22,9 +23,16 @@ const articleSchema = z.object({
   tag: z.string().min(1).max(32).default('公告'),
   price: z.string().max(64).optional(),
   address: z.string().max(160).optional(),
-  summary: z.string().optional(),
+  contact: z.string().max(64).optional(),
+  phone: z.string().max(32).optional(),
+  publisher: z.string().max(64).optional(),
+  status: statusSchema.shape.status.optional(),
+  summary: z.string().optional().nullable(),
   highlights: z.array(z.string()).optional(),
-  isTop: z.boolean().optional()
+  images: z.array(z.string().max(255)).max(14).optional(),
+  details: z.record(z.unknown()).optional().nullable(),
+  isTop: z.boolean().optional(),
+  isRecommended: z.boolean().optional()
 })
 const categorySchema = z.object({
   group: z.string().min(1).max(32).default('secondhand'),
@@ -320,6 +328,7 @@ export class AdminService {
     if (!type) throw new NotFoundException('资源不存在')
     const ids = parseBody(batchIdsSchema, body).ids
     const data = parseBody(statusSchema, body)
+    const affected = await this.prisma.contentItem.findMany({ where: { id: { in: ids }, type }, select: { title: true } })
     const result = await this.prisma.contentItem.updateMany({
       where: { id: { in: ids }, type },
       data: {
@@ -328,6 +337,9 @@ export class AdminService {
         offlineReason: data.offlineReason || null
       }
     })
+    for (const row of affected) {
+      await this.notifyContentStatus(row.title, data.status, data.rejectReason || data.offlineReason)
+    }
     await this.log(operator, `批量内容状态变更为${data.status}`, `${type} ${result.count}条`, ip)
     return result
   }
@@ -404,6 +416,7 @@ export class AdminService {
       },
       include: this.contentInclude()
     })
+    await this.notifyContentStatus(item.title, data.status, data.rejectReason || data.offlineReason)
     await this.log(operator, `内容状态变更为${data.status}`, item.title, ip)
     return this.serializeContent(item)
   }
@@ -457,14 +470,19 @@ export class AdminService {
         tag: data.tag || '公告',
         price: data.price || '平台发布',
         address: data.address || '',
-        contact: '平台编辑部',
-        phone: '',
-        publisher: operator,
-        status: 'approved',
+        contact: data.contact || '平台编辑部',
+        phone: data.phone || '',
+        publisher: data.publisher || operator,
+        status: data.status || 'approved',
         summary: data.summary || '',
+        ...(data.details ? { details: data.details as any } : {}),
         isTop: data.isTop || false,
+        isRecommended: data.isRecommended || false,
         highlightItems: {
           create: (data.highlights || ['资讯']).map((text, index) => ({ text, sortOrder: index }))
+        },
+        imageItems: {
+          create: (data.images || []).map((url, index) => ({ url, sortOrder: index }))
         }
       },
       include: this.contentInclude()
@@ -475,7 +493,7 @@ export class AdminService {
 
   async updateArticle(id: string, body: unknown, operator: string, ip?: string) {
     const data = parseBody(articleSchema.partial(), body)
-    await this.replaceContentAssets(id, data.highlights, undefined)
+    await this.replaceContentAssets(id, data.highlights, data.images)
     const item = await this.prisma.contentItem.update({
       where: { id },
       data: this.articlePayload(data),
@@ -621,13 +639,15 @@ export class AdminService {
       this.prisma.user.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } }),
       this.prisma.user.count({ where })
     ])
-    return pageResult(items, total, page, pageSize)
+    // 剔除口令哈希等敏感字段
+    return pageResult(items.map(({ passwordHash, ...rest }) => rest), total, page, pageSize)
   }
 
   async user(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } })
     if (!user) throw new NotFoundException('用户不存在')
-    return user
+    const { passwordHash, ...rest } = user
+    return rest
   }
 
   async batchUserStatus(body: unknown, operator: string, ip?: string) {
@@ -693,11 +713,26 @@ export class AdminService {
     return pageResult(items, total, page, pageSize)
   }
 
+  // 审核结果同步到用户消息中心（开发指南：信息审核通过/不通过 → 发送系统通知）
+  private async notifyContentStatus(title: string, status: string, reason?: string | null) {
+    const notice =
+      status === 'approved'
+        ? { title: '审核通过', body: `您发布的“${title}”已通过审核并上线展示。` }
+        : status === 'rejected'
+          ? { title: '审核未通过', body: `您发布的“${title}”未通过审核：${reason || '内容不符合发布规范'}` }
+          : status === 'offline'
+            ? { title: '信息已下架', body: `您发布的“${title}”已被平台下架${reason ? `：${reason}` : ''}。` }
+            : null
+    if (!notice) return
+    await this.prisma.message.create({ data: notice })
+  }
+
   async updateReport(id: string, body: any, operator: string, ip?: string) {
     const downContent = Boolean(body.downContent)
+    const status = body.status || 'handled'
     const item = await this.prisma.report.update({
       where: { id },
-      data: { status: body.status || 'handled', result: body.result || '已处理' }
+      data: { status, result: body.result || (status === 'rejected' ? '经核实无违规，举报不成立' : '已处理') }
     })
     if (downContent) {
       await this.prisma.contentItem.updateMany({
@@ -708,7 +743,7 @@ export class AdminService {
     await this.prisma.message.create({
       data: {
         title: '举报处理结果',
-        body: `关于“${item.targetTitle}”的举报已处理：${item.result || '已处理'}`
+        body: `关于“${item.targetTitle}”的举报${item.status === 'rejected' ? '经核实不成立' : '已处理'}：${item.result || '已处理'}`
       }
     })
     await this.log(operator, '处理举报', item.targetTitle, ip)
@@ -747,7 +782,11 @@ export class AdminService {
   }
 
   async updateAdminAccount(id: string, body: unknown, operator: string, ip?: string) {
-    const data = parseBody(adminAccountSchema.partial(), body)
+    // 编辑表单中密码/邮箱留空表示「不修改/清除」，不应触发格式校验
+    const raw = body && typeof body === 'object' ? { ...(body as Record<string, unknown>) } : {}
+    if (raw.password === '') delete raw.password
+    if (raw.email === '') raw.email = null
+    const data = parseBody(adminAccountSchema.partial(), raw)
     const user = await this.prisma.user.update({
       where: { id },
       data: {
@@ -1121,7 +1160,7 @@ export class AdminService {
 
   private articlePayload(data: z.infer<typeof articleSchema> | Partial<z.infer<typeof articleSchema>>) {
     const payload: any = {}
-    for (const field of ['title', 'tag', 'price', 'address', 'summary', 'isTop']) {
+    for (const field of ['title', 'tag', 'price', 'address', 'summary', 'isTop', 'contact', 'phone', 'publisher', 'status', 'isRecommended', 'details']) {
       if ((data as any)[field] !== undefined) payload[field] = (data as any)[field]
     }
     return payload

@@ -141,7 +141,8 @@ export class PublicService {
 
   async createListing(body: unknown) {
     const data = parseBody(createListingSchema, body)
-    const user = await this.upsertPublicUser(data.contact, data.phone)
+    // 无登录态下信息归属当前体验用户，否则「我的发布」无法关联到刚发布的内容
+    const user = await this.currentUser()
     const blocked = await this.hasSensitiveWord(`${data.title} ${data.summary || ''}`)
     const { images, highlights, details, ...content } = data
     const item = await this.prisma.contentItem.create({
@@ -149,7 +150,7 @@ export class PublicService {
         ...content,
         ...(details ? { details: details as Prisma.InputJsonObject } : {}),
         tag: data.tag || '全部',
-        publisher: data.contact,
+        publisher: user.nickname,
         status: blocked ? 'rejected' : 'pending',
         rejectReason: blocked ? '包含敏感词' : null,
         imageItems: {
@@ -195,7 +196,16 @@ export class PublicService {
       }
     })
     return {
-      user: updatedUser,
+      user: {
+        id: updatedUser.id,
+        nickname: updatedUser.nickname,
+        phone: updatedUser.phone,
+        status: updatedUser.status,
+        publishCount: updatedUser.publishCount,
+        favoriteCount: updatedUser.favoriteCount,
+        viewCount: updatedUser.viewCount,
+        registeredAt: updatedUser.registeredAt
+      },
       stats: [
         { label: '发布', value: stats.publish, type: 'publications' },
         { label: '收藏', value: stats.favorite, type: 'favorites' },
@@ -255,7 +265,9 @@ export class PublicService {
     return rows.map((row) => ({
       ...this.serializeContent(row.content),
       applyStatus: row.status,
-      appliedAt: row.createdAt
+      appliedAt: row.createdAt,
+      // 投递的职位若未上架（待审/下架），详情页需走预览通道，否则 404
+      previewToken: row.content.status === 'approved' ? undefined : this.createPreviewToken(row.content.id)
     }))
   }
 
@@ -414,6 +426,7 @@ export class PublicService {
     const relationImages = Array.isArray(item.imageItems)
       ? item.imageItems.sort((a: any, b: any) => a.sortOrder - b.sortOrder).map((entry: any) => entry.url)
       : []
+    const counts = item._count || {}
     return {
       ...details,
       ...item,
@@ -423,9 +436,14 @@ export class PublicService {
       highlights: relationHighlights.length ? relationHighlights : Array.isArray(item.highlights) ? item.highlights : [],
       images: relationImages.length ? relationImages : Array.isArray(item.images) ? item.images : [],
       isFavorite: Array.isArray(item.favorites) ? item.favorites.length > 0 : false,
+      // 真实互动计数：报名数（招聘详情）、想要/收藏数（二手卡片）
+      applicantCount: counts.applications ?? 0,
+      favoriteCount: counts.favorites ?? 0,
+      wantCount: counts.favorites ?? 0,
       imageItems: undefined,
       highlightItems: undefined,
-      favorites: undefined
+      favorites: undefined,
+      _count: undefined
     }
   }
 
@@ -433,6 +451,7 @@ export class PublicService {
     return {
       imageItems: { orderBy: { sortOrder: 'asc' as const } },
       highlightItems: { orderBy: { sortOrder: 'asc' as const } },
+      _count: { select: { favorites: true, applications: true } },
       ...(userId ? { favorites: { where: { userId } } } : {})
     }
   }

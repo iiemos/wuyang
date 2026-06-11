@@ -145,6 +145,11 @@ export class AdminController {
     return { data: await this.service.listContent('conveniences', query) }
   }
 
+  @Get('conveniences/:id')
+  async convenienceDetail(@Param('id') id: string) {
+    return { data: await this.service.contentDetail('conveniences', id) }
+  }
+
   @Post('conveniences')
   async createConvenience(@Body() body: unknown, @Req() req: AdminRequest) {
     return { data: await this.service.createContent('conveniences', body, this.operator(req), req.ip) }

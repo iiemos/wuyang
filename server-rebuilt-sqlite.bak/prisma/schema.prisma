@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ===================== RBAC / 管理端 =====================
+
+model AdminUser {
+  id          String          @id @default(cuid())
+  username    String          @unique
+  password    String
+  nickname    String          @default("")
+  phone       String          @default("")
+  email       String          @default("")
+  status      String          @default("active") // active | banned
+  lastLoginAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  roles       AdminUserRole[]
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  code        String           @unique
+  name        String
+  description String           @default("")
+  createdAt   DateTime         @default(now())
+  users       AdminUserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  code        String           @unique
+  name        String
+  description String           @default("")
+  roles       RolePermission[]
+}
+
+model AdminUserRole {
+  adminUserId String
+  roleId      String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  role        Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([adminUserId, roleId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model AdminMenu {
+  id         String  @id @default(cuid())
+  parentId   String?
+  title      String
+  path       String
+  component  String?
+  icon       String?
+  permission String?
+  sortOrder  Int     @default(0)
+  status     String  @default("enabled") // enabled | disabled
+}
+
+// ===================== 用户端 =====================
+
+model User {
+  id           String        @id @default(cuid())
+  username     String?
+  nickname     String
+  phone        String        @default("")
+  email        String        @default("")
+  avatar       String        @default("")
+  status       String        @default("active") // active | banned
+  lastLoginAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  listings     Listing[]
+  favorites    Favorite[]
+  viewRecords  ViewRecord[]
+  applications Application[]
+  messages     Message[]
+  reports      Report[]
+}
+
+// 统一信息表：jobs | houses | convenience | yellowPages | secondhand | news
+model Listing {
+  id            String        @id @default(cuid())
+  type          String
+  tag           String        @default("")
+  title         String
+  price         String        @default("")
+  address       String        @default("")
+  contact       String        @default("")
+  phone         String        @default("")
+  publisher     String        @default("")
+  company       String        @default("")
+  ownerType     String        @default("个人") // 个人 | 企业 | 中介
+  status        String        @default("pending") // pending | approved | rejected | offline | deleted
+  summary       String        @default("")
+  highlights    String        @default("[]") // JSON 数组字符串
+  images        String        @default("[]") // JSON 数组字符串
+  details       String        @default("{}") // JSON 对象字符串（按类型扩展字段）
+  rejectReason  String        @default("")
+  isTop         Boolean       @default(false)
+  topPriority   Int           @default(0)
+  topExpireAt   DateTime?
+  isRecommended Boolean       @default(false)
+  viewCount     Int           @default(0)
+  previewToken  String        @default("")
+  userId        String?
+  user          User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  favorites     Favorite[]
+  viewRecords   ViewRecord[]
+  applications  Application[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([type, status])
+  @@index([status, isTop, topPriority])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+}
+
+model ViewRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, listingId])
+}
+
+model Application {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  desc      String   @default("")
+  unread    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  targetId    String   @default("")
+  targetTitle String   @default("")
+  reason      String
+  reporter    String   @default("")
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status      String   @default("pending") // pending | handled | rejected
+  result      String   @default("")
+  createdAt   DateTime @default(now())
+}
+
+model Certification {
+  id           String   @id @default(cuid())
+  applicant    String
+  type         String // 个人实名 | 企业认证 | 中介认证
+  phone        String   @default("")
+  material     String   @default("")
+  status       String   @default("pending") // pending | approved | rejected
+  rejectReason String   @default("")
+  createdAt    DateTime @default(now())
+}
+
+// ===================== 运营 =====================
+
+model AdPosition {
+  id        String   @id @default(cuid())
+  name      String
+  scene     String // home | home_featured | jobs_channel | houses_channel | convenience_channel | secondhand_channel
+  pv        Int      @default(0)
+  uv        Int      @default(0)
+  ads       Ad[]
+  createdAt DateTime @default(now())
+}
+
+model Ad {
+  id         String     @id @default(cuid())
+  positionId String
+  position   AdPosition @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  title      String
+  desc       String     @default("")
+  image      String     @default("")
+  linkType   String     @default("category") // category | h5 | miniapp
+  linkValue  String     @default("")
+  status     String     @default("enabled") // enabled | disabled
+  startAt    DateTime?
+  endAt      DateTime?
+  clickCount Int        @default(0)
+  createdAt  DateTime   @default(now())
+}
+
+model TopOrder {
+  id          String   @id @default(cuid())
+  targetId    String   @default("")
+  targetTitle String
+  buyer       String
+  amount      String   @default("0")
+  status      String   @default("paid") // pending | paid | expired | refunded
+  startedAt   DateTime @default(now())
+  expiredAt   DateTime
+  createdAt   DateTime @default(now())
+}
+
+// ===================== 系统 =====================
+
+model SensitiveWord {
+  id        String   @id @default(cuid())
+  word      String   @unique
+  hitCount  Int      @default(0)
+  status    String   @default("enabled")
+  createdAt DateTime @default(now())
+}
+
+model Notice {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @default("")
+  status    String   @default("enabled")
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String @default("")
+}
+
+model OperationLog {
+  id        String   @id @default(cuid())
+  operator  String
+  action    String
+  target    String   @default("")
+  ip        String   @default("")
+  createdAt DateTime @default(now())
+}
+
+// 各业务分类（标签），group 对应内容 type
+model Category {
+  id        String   @id @default(cuid())
+  group     String
+  name      String
+  status    String   @default("enabled") // enabled | disabled
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([group, name])
+}

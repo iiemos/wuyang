@@ -382,8 +382,8 @@ export default {
               const data = await uploadImage(paths[index])
               if (data && data.url && this.form.images.length < 4) this.form.images.push(data.url)
             }
-          } catch {
-            uni.showToast({ title: '图片上传失败', icon: 'none' })
+          } catch (error) {
+            uni.showToast({ title: (error && error.message) || '图片上传失败', icon: 'none' })
           } finally {
             this.uploading = false
           }
@@ -483,8 +483,8 @@ export default {
         setTimeout(() => {
           uni.redirectTo({ url: targetUrl })
         }, 400)
-      } catch {
-        uni.showToast({ title: '提交失败，请稍后重试', icon: 'none' })
+      } catch (error) {
+        uni.showToast({ title: (error && error.message) || '提交失败，请稍后重试', icon: 'none' })
       } finally {
         this.submitting = false
       }
