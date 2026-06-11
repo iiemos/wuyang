@@ -365,8 +365,8 @@ export class PublicService {
     })
     return (position?.ads || []).map((ad) => ({
       id: ad.id,
-      title: ad.title,
-      desc: position?.name || '本地精选推荐',
+      title: ad.title || '',
+      desc: (ad as any).description || '',  // 使用轮播图的描述字段，如果没有则为空
       image: ad.image,
       type: ad.linkType === 'category' ? ad.linkValue : 'jobs',
       linkType: ad.linkType,
