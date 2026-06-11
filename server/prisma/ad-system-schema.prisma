@@ -1,0 +1,192 @@
+// 广告系统重构 - 新增数据模型
+// 这些模型将添加到原有的 schema.prisma 中
+
+// 广告位分类
+model AdPositionCategory {
+  id          String   @id @default(cuid())
+  code        String   @unique @db.VarChar(32)     // home, channel, detail, list
+  name        String   @db.VarChar(64)             // "首页", "频道页"
+  description String?  @db.Text
+  icon        String?  @db.VarChar(255)
+  sortOrder   Int      @default(0) @map("sort_order")
+  status      String   @default("enabled") @db.VarChar(32)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("ad_position_categories")
+}
+
+// 广告位（改进版）
+// 注：原 AdPosition 表保留，此为新版本说明
+// 新增字段：category_id, description, width, height, max_ads, display_rule, min_impression
+model AdPositionNew {
+  id            String        @id @default(cuid())
+  categoryId    String?       @map("category_id")
+  name          String        @db.VarChar(96)
+  description   String?       @db.Text
+
+  // 规格
+  width         Int?
+  height        Int?
+  maxAds        Int           @default(5) @map("max_ads")
+  displayRule   String        @default("carousel") @map("display_rule") @db.VarChar(32)
+
+  // 展示信息
+  scene         String?       @db.VarChar(64)  // 保留原字段兼容
+  minImpression Int           @default(0) @map("min_impression")
+
+  // 原字段（保留兼容）
+  pv            Int           @default(0)
+  uv            Int           @default(0)
+  ctr           String        @default("0%") @db.VarChar(16)
+
+  status        String        @default("enabled") @db.VarChar(32)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  // 关系
+  campaigns     AdCampaign[]  @relation("CampaignPositions")
+  creatives     AdCreative[]  @relation("CreativePositions")
+  performance   AdPerformance[] @relation("PerformancePositions")
+
+  @@map("ad_positions_new")
+}
+
+// 广告计划
+model AdCampaign {
+  id              String        @id @default(cuid())
+  name            String        @db.VarChar(128)
+  description     String?       @db.Text
+
+  // 投放期限
+  startDate       DateTime      @map("start_date") @db.DateTime
+  endDate         DateTime      @map("end_date") @db.DateTime
+
+  // 预算与计费
+  budget          Decimal?      @db.Decimal(12, 2)
+  dailyBudget     Decimal?      @map("daily_budget") @db.Decimal(12, 2)
+  pricingModel    String        @default("cpm") @map("pricing_model") @db.VarChar(32)
+  unitPrice       Decimal?      @map("unit_price") @db.Decimal(10, 4)
+
+  // 投放设置
+  positionIds     String?       @map("position_ids") @db.Json   // JSON数组
+  timeSlots       String?       @map("time_slots") @db.Json     // JSON: [{"start":"08:00","end":"20:00"}]
+
+  // 广告主信息
+  advertiserId    String?       @map("advertiser_id") @db.VarChar(36)
+  advertiserName  String?       @map("advertiser_name") @db.VarChar(96)
+  contactPhone    String?       @map("contact_phone") @db.VarChar(32)
+  contactEmail    String?       @map("contact_email") @db.VarChar(128)
+
+  // 状态
+  status          String        @default("draft") @db.VarChar(32) // draft, pending, active, paused, ended, offline
+  rejectReason    String?       @map("reject_reason") @db.Text
+
+  // 统计（实时）
+  totalImpression BigInt        @default(0) @map("total_impression")
+  totalClick      BigInt        @default(0) @map("total_click")
+  totalCost       Decimal       @default(0) @map("total_cost") @db.Decimal(12, 2)
+
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  startedAt       DateTime?     @map("started_at")
+  endedAt         DateTime?     @map("ended_at")
+
+  // 关系
+  creatives       AdCreative[]
+  positions       AdPositionNew[] @relation("CampaignPositions")
+  performance     AdPerformance[]
+
+  @@index([status, startDate])
+  @@index([createdAt])
+  @@map("ad_campaigns")
+}
+
+// 广告创意（从 Ad 改造）
+// 注：原 Ad 表改名为 ad_creatives，此为新字段说明
+// 新增字段：campaign_id, description, thumbnail_url, video_url, reject_reason, reviewed_by, reviewed_at, impression, click, conversion
+model AdCreative {
+  id              String        @id @default(cuid())
+  campaignId      String?       @map("campaign_id")
+  positionId      String?       @map("position_id")
+
+  title           String        @db.VarChar(128)
+  description     String?       @db.Text
+
+  // 素材
+  image           String?       @db.VarChar(255)
+  thumbnailUrl    String?       @map("thumbnail_url") @db.VarChar(255)
+  videoUrl        String?       @map("video_url") @db.VarChar(255)
+
+  // 链接
+  linkType        String        @default("category") @map("link_type") @db.VarChar(32)
+  linkValue       String        @default("jobs") @map("link_value") @db.VarChar(128)
+
+  // 审核
+  status          String        @default("pending") @db.VarChar(32) // pending, approved, rejected
+  rejectReason    String?       @map("reject_reason") @db.Text
+  reviewedBy      String?       @map("reviewed_by") @db.VarChar(64)
+  reviewedAt      DateTime?     @map("reviewed_at")
+
+  // 投放时间范围
+  startAt         DateTime?     @map("start_at")
+  endAt           DateTime?     @map("end_at")
+
+  // 统计
+  impression      BigInt        @default(0)
+  click           BigInt        @default(0)
+  conversion      BigInt        @default(0)
+
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // 关系
+  campaign        AdCampaign?   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  position        AdPositionNew? @relation("CreativePositions", fields: [positionId], references: [id], onDelete: Cascade)
+  performance     AdPerformance[]
+
+  @@index([campaignId, status])
+  @@index([positionId, status])
+  @@map("ad_creatives")
+}
+
+// 投放数据统计
+model AdPerformance {
+  id              String        @id @default(cuid())
+  creativeId      String        @map("creative_id")
+  positionId      String        @map("position_id")
+  campaignId      String        @map("campaign_id")
+
+  // 时间维度（按天统计）
+  statDate        DateTime      @map("stat_date") @db.Date
+
+  // 曝光数据
+  impression      BigInt        @default(0)
+  uniqueUser      BigInt        @default(0) @map("unique_user")
+
+  // 点击数据
+  click           BigInt        @default(0)
+  clickRate       Decimal       @default(0) @map("click_rate") @db.Decimal(5, 2)
+
+  // 转化数据
+  conversion      BigInt        @default(0)
+  conversionRate  Decimal       @default(0) @map("conversion_rate") @db.Decimal(5, 2)
+
+  // 花费数据
+  cost            Decimal       @default(0) @db.Decimal(12, 2)
+  cpm             Decimal       @default(0) @db.Decimal(10, 4)
+  cpc             Decimal       @default(0) @db.Decimal(10, 4)
+
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // 关系
+  creative        AdCreative    @relation(fields: [creativeId], references: [id], onDelete: Cascade)
+  position        AdPositionNew @relation("PerformancePositions", fields: [positionId], references: [id], onDelete: Cascade)
+  campaign        AdCampaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([creativeId, positionId, statDate])
+  @@index([statDate])
+  @@index([campaignId])
+  @@map("ad_performance")
+}
