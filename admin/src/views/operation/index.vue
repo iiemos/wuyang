@@ -8,63 +8,48 @@
       <el-button v-if="activeTab === 'ads'" type="primary" @click="openPosition()">新增广告位</el-button>
     </div>
 
-    <div class="stats-grid">
-      <el-statistic title="待审信息" :value="operationStats.pendingAudits || 0" :precision="0">
-        <template #prefix>
-          <span class="stat-trend">实时</span>
-        </template>
-      </el-statistic>
-      <el-statistic title="举报待处理" :value="operationStats.pendingReports || 0" :precision="0">
-        <template #prefix>
-          <span class="stat-trend">实时</span>
-        </template>
-      </el-statistic>
-      <el-statistic title="置顶收入" :value="revenueStats.topOrderRevenue || 0" :precision="0">
-        <template #prefix>
-          <span class="stat-trend">近 7 日</span>
-        </template>
-      </el-statistic>
-      <el-statistic title="广告点击率" :value="operationStats.adCtr || '0%'">
-        <template #prefix>
-          <span class="stat-trend">综合</span>
-        </template>
-      </el-statistic>
-    </div>
-
     <el-card class="content-card" shadow="never">
+      <div class="page-head">
+        <div>
+          <h2>首页轮播图</h2>
+          <span>管理首页轮播广告，支持纯轮播图或轮播图+标题+描述</span>
+        </div>
+        <el-button type="primary" @click="openAdDialog()">添加轮播图</el-button>
+      </div>
+
       <template v-if="activeTab === 'ads'">
-        <el-table v-loading="loading" :data="adPositions" row-key="id">
-          <el-table-column prop="name" label="位置名称" min-width="170" />
-          <el-table-column prop="scene" label="位置标识" width="150" />
-          <el-table-column prop="pv" label="浏览量" width="100" />
-          <el-table-column prop="uv" label="访客数" width="100" />
-          <el-table-column prop="ctr" label="点击率" width="100" />
-          <el-table-column label="广告素材" min-width="240">
+        <el-table v-loading="loading" :data="carouselAds" row-key="id" :default-sort="{ prop: 'createdAt', order: 'descending' }">
+          <el-table-column label="轮播图" width="120">
             <template #default="{ row }">
-              <div class="ad-materials">
-                <div v-for="ad in row.ads" :key="ad.id" class="ad-chip">
-                  <el-image v-if="ad.image" :src="assetUrl(ad.image)" fit="cover" class="ad-chip__image" />
-                  <div class="ad-chip__info">
-                    <el-tag :type="ad.status === 'enabled' ? 'success' : 'info'">{{ ad.title }}</el-tag>
-                  </div>
-                  <el-space :size="4">
-                    <el-button link type="primary" size="small" @click="openAd(row, ad)">编辑</el-button>
-                    <el-button link size="small" @click="toggleAdStatus(ad)">{{ ad.status === 'enabled' ? '禁用' : '启用' }}</el-button>
-                    <el-button link type="danger" size="small" @click="removeAd(ad)">删除</el-button>
-                  </el-space>
-                </div>
-                <el-button type="primary" link @click="openAd(row)">{{ row.ads?.length ? '添加素材' : '添加广告素材' }}</el-button>
-              </div>
+              <el-image :src="assetUrl(row.image)" :preview-src-list="[assetUrl(row.image)]" style="width: 100px; height: 60px" fit="cover" />
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column prop="title" label="标题" min-width="120" />
+          <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
+          <el-table-column label="跳转" width="120">
             <template #default="{ row }">
-              <div class="table-actions">
-                <el-button link @click="openPosition(row)">编辑</el-button>
-                <el-button link type="danger" @click="removePosition(row)">删除</el-button>
-              </div>
+              <span v-if="row.linkType === 'category'" class="text-sm">分类: {{ row.linkValue }}</span>
+              <span v-else-if="row.linkType === 'h5'" class="text-sm">H5链接</span>
+              <span v-else class="text-sm">小程序</span>
             </template>
           </el-table-column>
+          <el-table-column label="状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.status === 'enabled' ? 'success' : 'info'">{{ row.status === 'enabled' ? '启用' : '禁用' }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="180" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" size="small" @click="openAdDialog(row)">编辑</el-button>
+              <el-button link :type="row.status === 'enabled' ? 'danger' : 'success'" size="small" @click="toggleAdStatus(row)">
+                {{ row.status === 'enabled' ? '禁用' : '启用' }}
+              </el-button>
+              <el-button link type="danger" size="small" @click="removeAd(row)">删除</el-button>
+            </template>
+          </el-table-column>
+          <template #empty>
+            <el-empty description="暂无轮播图，点击上方「添加轮播图」按钮添加" />
+          </template>
         </el-table>
       </template>
 
@@ -119,20 +104,30 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="adDialog" :title="adForm.id ? '编辑广告' : '新增广告'" width="560px">
-      <el-form :model="adForm" label-width="92px">
-        <el-form-item label="广告标题" required>
-          <el-input v-model="adForm.title" />
-        </el-form-item>
-        <el-form-item label="图片地址">
+    <el-dialog v-model="adDialog" :title="adForm.id ? '编辑轮播图' : '添加轮播图'" width="520px" destroy-on-close>
+      <el-form :model="adForm" label-width="92px" @submit.prevent="saveAd">
+        <el-form-item label="轮播图" required>
           <div class="ad-upload">
             <el-image v-if="adForm.image" :src="assetUrl(adForm.image)" fit="cover" class="ad-upload__preview" />
-            <el-input v-model="adForm.image" placeholder="可粘贴图片 URL，也可上传" />
-            <el-upload :http-request="uploadAdImage" :show-file-list="false" accept="image/*">
-              <el-button :loading="uploading">上传图片</el-button>
+            <el-upload :http-request="uploadAdImage" :show-file-list="false" accept="image/*" drag>
+              <el-icon class="el-icon--upload"><DocumentCopy /></el-icon>
+              <div class="el-upload__text">拖动或点击上传图片</div>
+              <template #tip>
+                <div class="el-upload__tip">只支持 jpg/png/jpeg，单张不超过 5MB</div>
+              </template>
             </el-upload>
+            <el-input v-if="!adForm.image" v-model="adForm.image" placeholder="或粘贴图片 URL" style="margin-top: 10px" />
           </div>
         </el-form-item>
+
+        <el-form-item label="标题（可选）">
+          <el-input v-model="adForm.title" placeholder="轮播图标题，可为空" />
+        </el-form-item>
+
+        <el-form-item label="描述（可选）">
+          <el-input v-model="adForm.description" type="textarea" :rows="2" placeholder="轮播图描述，可为空" />
+        </el-form-item>
+
         <el-form-item label="跳转类型">
           <el-select v-model="adForm.linkType">
             <el-option label="分类" value="category" />
@@ -140,29 +135,25 @@
             <el-option label="小程序路径" value="miniapp" />
           </el-select>
         </el-form-item>
+
         <el-form-item label="跳转值">
-          <el-select v-if="adForm.linkType === 'category'" v-model="adForm.linkValue" filterable placeholder="请选择跳转分类">
-            <el-option v-for="item in linkCategoryOptions" :key="item.value" :label="item.label" :value="item.value" />
+          <el-select v-if="adForm.linkType === 'category'" v-model="adForm.linkValue" placeholder="选择跳转分类">
+            <el-option label="招聘" value="jobs" />
+            <el-option label="房源" value="houses" />
+            <el-option label="便民" value="convenience" />
+            <el-option label="服务" value="yellowPages" />
+            <el-option label="二手" value="secondhand" />
+            <el-option label="资讯" value="news" />
           </el-select>
-          <el-input v-else v-model="adForm.linkValue" placeholder="请输入完整链接或小程序路径" />
+          <el-input v-else v-model="adForm.linkValue" :placeholder="`请输入${adForm.linkType === 'h5' ? '完整链接' : '小程序路径'}`" />
         </el-form-item>
+
         <el-form-item label="状态">
-          <el-radio-group v-model="adForm.status">
-            <el-radio-button label="enabled">启用</el-radio-button>
-            <el-radio-button label="disabled">禁用</el-radio-button>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="投放时间">
-          <el-date-picker
-            v-model="adRange"
-            type="datetimerange"
-            range-separator="至"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            value-format="YYYY-MM-DDTHH:mm:ss.SSSZ"
-          />
+          <el-switch v-model="adForm.status" active-value="enabled" inactive-value="disabled" />
+          <span style="margin-left: 10px">{{ adForm.status === 'enabled' ? '启用' : '禁用' }}</span>
         </el-form-item>
       </el-form>
+
       <template #footer>
         <el-button @click="adDialog = false">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="saveAd">保存</el-button>
