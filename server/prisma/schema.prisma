@@ -1,0 +1,431 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(cuid())
+  username     String?    @unique
+  passwordHash String?    @map("password_hash") @db.VarChar(255)
+  nickname     String     @db.VarChar(64)
+  phone        String?    @unique @db.VarChar(32)
+  email        String?    @db.VarChar(128)
+  status       String     @default("active") @db.VarChar(32)
+  publishCount Int        @default(0) @map("publish_count")
+  favoriteCount Int       @default(0) @map("favorite_count")
+  viewCount    Int        @default(0) @map("view_count")
+  registeredAt DateTime   @default(now()) @map("registered_at")
+  lastLoginAt  DateTime?  @map("last_login_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  roles        UserRole[]
+  favorites    UserFavorite[]
+  browseHistory UserBrowseHistory[]
+  applications JobApplication[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  code        String           @unique @db.VarChar(64)
+  name        String           @db.VarChar(64)
+  description String?          @db.VarChar(255)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  code        String           @unique @db.VarChar(96)
+  name        String           @db.VarChar(64)
+  description String?          @db.VarChar(255)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId String @map("user_id")
+  roleId String @map("role_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id")
+  permissionId String     @map("permission_id")
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model ContentItem {
+  id              String    @id @default(cuid())
+  type            String    @db.VarChar(32)
+  title           String    @db.VarChar(128)
+  tag             String    @db.VarChar(32)
+  price           String?   @db.VarChar(64)
+  address         String?   @db.VarChar(160)
+  contact         String    @db.VarChar(64)
+  phone           String    @db.VarChar(32)
+  publisher       String?   @db.VarChar(64)
+  status          String    @default("pending") @db.VarChar(32)
+  rejectReason    String?   @map("reject_reason") @db.Text
+  offlineReason   String?   @map("offline_reason") @db.Text
+  summary         String?   @db.Text
+  highlights      Json?
+  images          Json?
+  details         Json?
+  isTop           Boolean   @default(false) @map("is_top")
+  topPriority     Int       @default(0) @map("top_priority")
+  topExpireAt     DateTime? @map("top_expire_at")
+  isRecommended   Boolean   @default(false) @map("is_recommended")
+  company         String?   @db.VarChar(96)
+  ownerType       String?   @map("owner_type") @db.VarChar(32)
+  licenseNo       String?   @map("license_no") @db.VarChar(96)
+  packageName     String?   @map("package_name") @db.VarChar(64)
+  packageExpireAt DateTime? @map("package_expire_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  imageItems      ContentImage[]
+  highlightItems  ContentHighlight[]
+  favorites       UserFavorite[]
+  browseHistory   UserBrowseHistory[]
+  applications    JobApplication[]
+
+  @@index([type, status, createdAt])
+  @@index([isTop, topPriority])
+  @@map("content_items")
+}
+
+model ContentImage {
+  id        String      @id @default(cuid())
+  contentId String     @map("content_id")
+  url       String     @db.VarChar(255)
+  sortOrder Int        @default(0) @map("sort_order")
+  createdAt DateTime   @default(now()) @map("created_at")
+  content   ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([contentId, sortOrder])
+  @@map("content_images")
+}
+
+model ContentHighlight {
+  id        String      @id @default(cuid())
+  contentId String     @map("content_id")
+  text      String     @db.VarChar(32)
+  sortOrder Int        @default(0) @map("sort_order")
+  createdAt DateTime   @default(now()) @map("created_at")
+  content   ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([contentId, sortOrder])
+  @@map("content_highlights")
+}
+
+model Certification {
+  id           String   @id @default(cuid())
+  applicant    String   @db.VarChar(96)
+  type         String   @db.VarChar(32)
+  phone        String   @db.VarChar(32)
+  status       String   @default("pending") @db.VarChar(32)
+  material     String?  @db.VarChar(255)
+  rejectReason String?  @map("reject_reason") @db.Text
+  submittedAt  DateTime @default(now()) @map("submitted_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([status, submittedAt])
+  @@map("certifications")
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  targetId    String   @map("target_id") @db.VarChar(64)
+  targetTitle String   @map("target_title") @db.VarChar(128)
+  reason      String   @db.VarChar(255)
+  reporter    String   @db.VarChar(64)
+  status      String   @default("pending") @db.VarChar(32)
+  result      String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([status, createdAt])
+  @@map("reports")
+}
+
+model RecruitmentBlacklist {
+  id        String   @id @default(cuid())
+  phone     String?  @db.VarChar(32)
+  userId    String?  @map("user_id") @db.VarChar(64)
+  reason    String?  @db.VarChar(255)
+  operator  String   @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([phone])
+  @@index([userId])
+  @@map("recruitment_blacklist")
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(96)
+  status    String   @default("pending") @db.VarChar(32)
+  credit    String   @default("B") @db.VarChar(8)
+  jobs      Int      @default(0)
+  contact   String?  @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("companies")
+}
+
+model Agency {
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(96)
+  broker    String   @db.VarChar(64)
+  status    String   @default("pending") @db.VarChar(32)
+  houses    Int      @default(0)
+  passRate  String   @default("0%") @map("pass_rate") @db.VarChar(16)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("agencies")
+}
+
+model ResourceCategory {
+  id        String   @id @default(cuid())
+  group     String   @db.VarChar(32)
+  name      String   @db.VarChar(64)
+  status    String   @default("enabled") @db.VarChar(32)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([group, name])
+  @@map("resource_categories")
+}
+
+model ArticleCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique @db.VarChar(64)
+  status    String   @default("enabled") @db.VarChar(32)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("article_categories")
+}
+
+model AdPosition {
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(96)
+  scene     String   @db.VarChar(64)
+  pv        Int      @default(0)
+  uv        Int      @default(0)
+  ctr       String   @default("0%") @db.VarChar(16)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  ads       Ad[]
+
+  @@map("ad_positions")
+}
+
+model Ad {
+  id           String     @id @default(cuid())
+  positionId   String     @map("position_id")
+  title        String     @db.VarChar(128)
+  image        String?    @db.VarChar(255)
+  linkType     String     @default("category") @map("link_type") @db.VarChar(32)
+  linkValue    String     @default("jobs") @map("link_value") @db.VarChar(128)
+  status       String     @default("enabled") @db.VarChar(32)
+  startAt      DateTime?  @map("start_at")
+  endAt        DateTime?  @map("end_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  adPosition   AdPosition @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  @@index([positionId, status])
+  @@map("ads")
+}
+
+model TopOrder {
+  id          String   @id @default(cuid())
+  targetId    String   @map("target_id") @db.VarChar(64)
+  targetTitle String   @map("target_title") @db.VarChar(128)
+  buyer       String   @db.VarChar(64)
+  amount      Decimal  @db.Decimal(10, 2)
+  status      String   @default("pending") @db.VarChar(32)
+  startedAt   DateTime @map("started_at")
+  expiredAt   DateTime @map("expired_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([status, expiredAt])
+  @@map("top_orders")
+}
+
+model Setting {
+  key       String   @id @db.VarChar(64)
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+model PlatformSetting {
+  id                       String   @id @default("platform") @db.VarChar(32)
+  appName                  String   @default("青柠本地生活") @map("app_name") @db.VarChar(64)
+  logo                     String?  @db.VarChar(255)
+  city                     String   @default("舞阳") @db.VarChar(64)
+  customerServicePhone     String?  @map("customer_service_phone") @db.VarChar(32)
+  customerWechat           String?  @map("customer_wechat") @db.VarChar(64)
+  customerQq               String?  @map("customer_qq") @db.VarChar(64)
+  sensitiveStrategy        String   @default("manual") @map("sensitive_strategy") @db.VarChar(32)
+  newUserPublishDelayHours Int      @default(0) @map("new_user_publish_delay_hours")
+  userAgreement            String?  @map("user_agreement") @db.Text
+  privacyPolicy            String?  @map("privacy_policy") @db.Text
+  aboutUs                  String?  @map("about_us") @db.Text
+  updatedAt                DateTime @updatedAt @map("updated_at")
+  auditTypes               PlatformAuditRequiredType[]
+
+  @@map("platform_settings")
+}
+
+model PlatformAuditRequiredType {
+  id        String          @id @default(cuid())
+  settingId String         @map("setting_id") @db.VarChar(32)
+  type      String         @db.VarChar(32)
+  setting   PlatformSetting @relation(fields: [settingId], references: [id], onDelete: Cascade)
+
+  @@unique([settingId, type])
+  @@map("platform_audit_required_types")
+}
+
+model UserFavorite {
+  id        String      @id @default(cuid())
+  userId    String      @map("user_id")
+  contentId String      @map("content_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+  @@index([userId, createdAt])
+  @@map("user_favorites")
+}
+
+model UserBrowseHistory {
+  id        String      @id @default(cuid())
+  userId    String      @map("user_id")
+  contentId String      @map("content_id")
+  viewCount Int         @default(1) @map("view_count")
+  viewedAt  DateTime    @default(now()) @map("viewed_at")
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+  @@index([userId, viewedAt])
+  @@map("user_browse_history")
+}
+
+model JobApplication {
+  id        String      @id @default(cuid())
+  userId    String      @map("user_id")
+  contentId String      @map("content_id")
+  status    String      @default("submitted") @db.VarChar(32)
+  createdAt DateTime    @default(now()) @map("created_at")
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+  @@index([userId, createdAt])
+  @@map("job_applications")
+}
+
+model SensitiveWord {
+  id        String   @id @default(cuid())
+  word      String   @unique @db.VarChar(96)
+  hitCount  Int      @default(0) @map("hit_count")
+  status    String   @default("enabled") @db.VarChar(32)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("sensitive_words")
+}
+
+model Notice {
+  id        String   @id @default(cuid())
+  title     String   @db.VarChar(128)
+  content   String   @db.Text
+  status    String   @default("enabled") @db.VarChar(32)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("notices")
+}
+
+model OperationLog {
+  id        String   @id @default(cuid())
+  operator  String   @db.VarChar(64)
+  action    String   @db.VarChar(96)
+  target    String   @db.VarChar(128)
+  ip        String?  @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("operation_logs")
+}
+
+model LoginLog {
+  id        String   @id @default(cuid())
+  account   String   @db.VarChar(64)
+  ip        String?  @db.VarChar(64)
+  status    String   @db.VarChar(32)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("login_logs")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  title     String   @db.VarChar(128)
+  body      String   @db.Text
+  unread    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("messages")
+}
+
+model AdminMenu {
+  id        String      @id @default(cuid())
+  parentId  String?     @map("parent_id")
+  title     String      @db.VarChar(64)
+  path      String      @unique @db.VarChar(160)
+  component String?     @db.VarChar(160)
+  icon      String?     @db.VarChar(64)
+  permission String?    @db.VarChar(96)
+  sortOrder Int         @default(0) @map("sort_order")
+  status    String      @default("enabled") @db.VarChar(32)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+  parent    AdminMenu?  @relation("AdminMenuTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  AdminMenu[] @relation("AdminMenuTree")
+
+  @@index([parentId, sortOrder])
+  @@map("admin_menus")
+}
