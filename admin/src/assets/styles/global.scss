@@ -188,24 +188,11 @@ body {
   margin-bottom: 0;
 }
 
-.stat-card {
-  padding: 18px;
-  border: 1px solid #e4ebe7;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.stat-card span,
-.stat-card em {
+.stat-trend {
+  display: inline-block;
   color: #68746d;
-  font-style: normal;
-}
-
-.stat-card strong {
-  display: block;
-  margin: 8px 0 4px;
-  font-size: 30px;
-  line-height: 36px;
+  font-size: 12px;
+  margin-bottom: 4px;
 }
 
 .split-grid {

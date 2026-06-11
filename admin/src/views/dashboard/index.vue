@@ -9,11 +9,11 @@
     </div>
 
     <div class="stats-grid">
-      <article v-for="item in stats" :key="item.label" class="stat-card">
-        <span>{{ item.label }}</span>
-        <strong>{{ item.value }}</strong>
-        <em>{{ item.trend }}</em>
-      </article>
+      <el-statistic v-for="item in stats" :key="item.label" :title="item.label" :value="item.value" :precision="0">
+        <template #prefix>
+          <span class="stat-trend">{{ item.trend }}</span>
+        </template>
+      </el-statistic>
     </div>
 
     <el-card class="content-card mb-4" shadow="never">
@@ -24,11 +24,11 @@
         </div>
       </div>
       <div class="stats-grid compact">
-        <article v-for="item in userStats" :key="item.label" class="stat-card">
-          <span>{{ item.label }}</span>
-          <strong>{{ item.value }}</strong>
-          <em>{{ item.trend }}</em>
-        </article>
+        <el-statistic v-for="item in userStats" :key="item.label" :title="item.label" :value="item.value" :precision="0">
+          <template #prefix>
+            <span class="stat-trend">{{ item.trend }}</span>
+          </template>
+        </el-statistic>
       </div>
     </el-card>
 

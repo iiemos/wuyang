@@ -9,26 +9,26 @@
     </div>
 
     <div class="stats-grid">
-      <article class="stat-card">
-        <span>待审信息</span>
-        <strong>{{ operationStats.pendingAudits || 0 }}</strong>
-        <em>实时</em>
-      </article>
-      <article class="stat-card">
-        <span>举报待处理</span>
-        <strong>{{ operationStats.pendingReports || 0 }}</strong>
-        <em>实时</em>
-      </article>
-      <article class="stat-card">
-        <span>置顶收入</span>
-        <strong>{{ revenueStats.topOrderRevenue || 0 }}</strong>
-        <em>近 7 日</em>
-      </article>
-      <article class="stat-card">
-        <span>广告点击率</span>
-        <strong>{{ operationStats.adCtr || '0%' }}</strong>
-        <em>综合</em>
-      </article>
+      <el-statistic title="待审信息" :value="operationStats.pendingAudits || 0" :precision="0">
+        <template #prefix>
+          <span class="stat-trend">实时</span>
+        </template>
+      </el-statistic>
+      <el-statistic title="举报待处理" :value="operationStats.pendingReports || 0" :precision="0">
+        <template #prefix>
+          <span class="stat-trend">实时</span>
+        </template>
+      </el-statistic>
+      <el-statistic title="置顶收入" :value="revenueStats.topOrderRevenue || 0" :precision="0">
+        <template #prefix>
+          <span class="stat-trend">近 7 日</span>
+        </template>
+      </el-statistic>
+      <el-statistic title="广告点击率" :value="operationStats.adCtr || '0%'">
+        <template #prefix>
+          <span class="stat-trend">综合</span>
+        </template>
+      </el-statistic>
     </div>
 
     <el-card class="content-card" shadow="never">
@@ -41,16 +41,20 @@
           <el-table-column prop="ctr" label="点击率" width="100" />
           <el-table-column label="广告素材" min-width="240">
             <template #default="{ row }">
-              <el-space wrap>
-                <span v-for="ad in row.ads" :key="ad.id" class="ad-chip">
+              <div class="ad-materials">
+                <div v-for="ad in row.ads" :key="ad.id" class="ad-chip">
                   <el-image v-if="ad.image" :src="assetUrl(ad.image)" fit="cover" class="ad-chip__image" />
-                  <el-tag :type="ad.status === 'enabled' ? 'success' : 'info'">{{ ad.title }}</el-tag>
-                  <el-button link type="primary" @click="openAd(row, ad)">编辑</el-button>
-                  <el-button link @click="toggleAdStatus(ad)">{{ ad.status === 'enabled' ? '禁用' : '启用' }}</el-button>
-                  <el-button link type="danger" @click="removeAd(ad)">删除</el-button>
-                </span>
-                <el-button size="small" plain @click="openAd(row)">{{ row.ads?.length ? '添加素材' : '添加广告素材' }}</el-button>
-              </el-space>
+                  <div class="ad-chip__info">
+                    <el-tag :type="ad.status === 'enabled' ? 'success' : 'info'">{{ ad.title }}</el-tag>
+                  </div>
+                  <el-space :size="4">
+                    <el-button link type="primary" size="small" @click="openAd(row, ad)">编辑</el-button>
+                    <el-button link size="small" @click="toggleAdStatus(ad)">{{ ad.status === 'enabled' ? '禁用' : '启用' }}</el-button>
+                    <el-button link type="danger" size="small" @click="removeAd(ad)">删除</el-button>
+                  </el-space>
+                </div>
+                <el-button type="primary" link @click="openAd(row)">{{ row.ads?.length ? '添加素材' : '添加广告素材' }}</el-button>
+              </div>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="150" fixed="right">
@@ -85,13 +89,7 @@
       </template>
 
       <template v-if="activeTab === 'revenue'">
-        <div class="revenue-bars">
-          <div v-for="(value, index) in revenueStats.trend || []" :key="index" class="revenue-bar">
-            <span>{{ value }}</span>
-            <i :style="{ height: `${Math.max(8, Math.min(100, Number(value)))}px` }" />
-            <em>{{ trendLabel(index) }}</em>
-          </div>
-        </div>
+        <div ref="revenueChartRef" class="revenue-chart" />
       </template>
     </el-card>
 
@@ -174,7 +172,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import * as echarts from 'echarts'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getOperationStatsApi, getRevenueStatsApi } from '@/api/modules/dashboard'
 import {
@@ -203,6 +202,7 @@ const adPositions = ref<AdPositionItem[]>([])
 const orders = ref<TopOrderItem[]>([])
 const operationStats = ref<Record<string, any>>({})
 const revenueStats = ref<Record<string, any>>({})
+const revenueChartRef = ref<HTMLElement>()
 const positionDialog = ref(false)
 const adDialog = ref(false)
 const currentPositionId = ref('')
@@ -239,6 +239,45 @@ const pageDescription = computed(() => {
 })
 
 onMounted(loadData)
+
+watch(
+  () => [revenueStats.value.trend, activeTab.value],
+  () => {
+    if (activeTab.value === 'revenue' && revenueChartRef.value) {
+      initRevenueChart()
+    }
+  }
+)
+
+function initRevenueChart() {
+  const chart = echarts.init(revenueChartRef.value)
+  const data = revenueStats.value.trend || []
+  const labels = data.map((_: any, i: number) => `近${7 - i}天`)
+
+  const option: echarts.EChartsOption = {
+    responsive: true,
+    color: ['#19a35b'],
+    grid: { left: 40, right: 20, top: 20, bottom: 40, containLabel: true },
+    xAxis: {
+      type: 'category',
+      data: labels,
+      axisLabel: { color: '#6d7871' }
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: { color: '#6d7871' }
+    },
+    series: [
+      {
+        data: data.map((v: any) => Number(v) || 0),
+        type: 'bar',
+        itemStyle: { borderRadius: [6, 6, 0, 0] }
+      }
+    ]
+  }
+
+  chart.setOption(option)
+}
 
 async function loadData() {
   loading.value = true
@@ -346,27 +385,45 @@ function trendLabel(index: number | string) {
 </script>
 
 <style scoped>
-.revenue-bars {
-  display: flex;
-  align-items: end;
-  gap: 18px;
-  min-height: 180px;
-  padding: 24px;
+.revenue-chart {
+  width: 100%;
+  height: 300px;
 }
 
-.revenue-bar {
+.ad-materials {
   display: grid;
-  min-width: 64px;
-  justify-items: center;
   gap: 8px;
-  color: #6d7871;
 }
 
-.revenue-bar i {
-  display: block;
-  width: 32px;
-  border-radius: 6px 6px 0 0;
-  background: #19a35b;
+.ad-chip {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #e4ebe7;
+  border-radius: 8px;
+  background: #f8fbf9;
+  transition: all 0.2s;
+}
+
+.ad-chip:hover {
+  background: #f0f5f2;
+  border-color: #19a35b;
+}
+
+.ad-chip__image {
+  width: 40px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e4ebe7;
+  object-fit: cover;
+}
+
+.ad-chip__info {
+  min-width: 0;
+  display: flex;
+  align-items: center;
 }
 
 .ad-upload {
@@ -379,23 +436,6 @@ function trendLabel(index: number | string) {
   width: 220px;
   height: 96px;
   border-radius: 8px;
-  border: 1px solid #e4ebe7;
-}
-
-.ad-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  border: 1px solid #e4ebe7;
-  border-radius: 8px;
-  background: #f8fbf9;
-}
-
-.ad-chip__image {
-  width: 40px;
-  height: 28px;
-  border-radius: 6px;
   border: 1px solid #e4ebe7;
 }
 </style>
